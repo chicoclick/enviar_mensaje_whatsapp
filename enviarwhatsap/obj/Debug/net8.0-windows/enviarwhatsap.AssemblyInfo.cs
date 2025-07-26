@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("enviarwhatsap")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c1a45dcdc76c6ca63037e19f3a527ba34af874ae")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5b6bdd2a44ed688c8dd398343e1781630cd36a49")]
 [assembly: System.Reflection.AssemblyProductAttribute("enviarwhatsap")]
 [assembly: System.Reflection.AssemblyTitleAttribute("enviarwhatsap")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

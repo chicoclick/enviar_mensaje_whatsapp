@@ -12,15 +12,25 @@ namespace enviarwhatsap
             InitializeComponent();
         }
 
-        private async void whatsapp_Load(object sender, EventArgs e)
+        private void whatsapp_Load(object sender, EventArgs e)
         {
+
+
+
+            enviarmensajechat();
+
+        }
+
+        private async void enviarmensajechat()
+            {
             string normalizedPath = Path.GetFullPath(@"C:\Users\Manuel Gomez\source\repos\enviarwhatsap\enviarwhatsap\bin\Debug\hola.pdf");
             //string normalizedPath = Path.GetFullPath(@"C:\Users\Manuel Gomez\Downloads\Vídeo sin título ‐ Hecho con Clipchamp.mp4");
             //Vídeo sin título ‐ Hecho con Clipchamp.mp4
-           if (!Path.GetExtension(normalizedPath).ToLower().Equals(".pdf"))
+            if (!Path.GetExtension(normalizedPath).ToLower().Equals(".pdf"))
             {
                 MessageBox.Show("El archivo debe ser un PDF.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                this.Close();
+                //return;
             }
             // Inicializa WebView2
             await webView21.EnsureCoreWebView2Async(null);
@@ -35,16 +45,16 @@ namespace enviarwhatsap
             {
                 //webView21.Visible = true;
                 MessageBox.Show("Por favor, escanea el código QR en WhatsApp Web.", "Error de autenticación", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }else
+                this.Close();
+                //return;
+            }
+            else
             {
                 //webView21.Visible = false;
+                // Copiar y pegar el archivo
+                await PasteFile(normalizedPath);
+                this.Close();
             }
-
-            // Copiar y pegar el archivo
-            await PasteFile(normalizedPath);
-            
-
         }
         private async Task PasteFile(string filePath)
         {

@@ -25,7 +25,17 @@ namespace enviarwhatsap
         private void button2_Click(object sender, EventArgs e)
         {
 
-            var ventana = new whatsapp();
+            whatsapp ventana = new whatsapp();
+
+
+            ventana.ShowDialog(); // Espera a que la ventana se cierre sola
+
+            
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            var ventana = new iniciowhatsapp();
 
 
             ventana.ShowDialog(); // Espera a que la ventana se cierre sola

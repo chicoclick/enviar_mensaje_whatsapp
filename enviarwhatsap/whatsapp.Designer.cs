@@ -40,7 +40,7 @@
             panel1.Controls.Add(webView21);
             panel1.Location = new Point(12, 12);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1195, 501);
+            panel1.Size = new Size(1021, 574);
             panel1.TabIndex = 0;
             // 
             // webView21
@@ -51,7 +51,7 @@
             webView21.Dock = DockStyle.Fill;
             webView21.Location = new Point(0, 0);
             webView21.Name = "webView21";
-            webView21.Size = new Size(1195, 501);
+            webView21.Size = new Size(1021, 574);
             webView21.TabIndex = 0;
             webView21.ZoomFactor = 1D;
             // 
@@ -59,7 +59,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1219, 525);
+            ClientSize = new Size(1045, 598);
             Controls.Add(panel1);
             Name = "whatsapp";
             Text = "whatsapp";
