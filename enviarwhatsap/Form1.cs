@@ -24,8 +24,10 @@ namespace enviarwhatsap
 
         private void button2_Click(object sender, EventArgs e)
         {
-
-            whatsapp ventana = new whatsapp();
+            string numero = "+529992963226"; // Cambia por el número deseado
+            string mensaje = "¡Hola! Este es un mensaje de prueba." + DateTime.Now.ToString();
+            string rutaArchivo = @"C:\Users\Manuel Gomez\Downloads\CERTIFICADO.pdf"; // O null si solo es texto
+            whatsapp ventana = new whatsapp(numero, mensaje, rutaArchivo);
 
 
             ventana.ShowDialog(); // Espera a que la ventana se cierre sola

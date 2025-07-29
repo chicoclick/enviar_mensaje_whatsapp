@@ -39,17 +39,17 @@
             button1.Name = "button1";
             button1.Size = new Size(417, 62);
             button1.TabIndex = 0;
-            button1.Text = "Enviar por whatsapp";
+            button1.Text = "Prueba inicial";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
             // button2
             // 
-            button2.Location = new Point(275, 302);
+            button2.Location = new Point(275, 292);
             button2.Name = "button2";
             button2.Size = new Size(417, 62);
             button2.TabIndex = 1;
-            button2.Text = "WHATSAPP";
+            button2.Text = "Enviar por whatsapp";
             button2.UseVisualStyleBackColor = true;
             button2.Click += button2_Click;
             // 
@@ -59,7 +59,7 @@
             button3.Name = "button3";
             button3.Size = new Size(417, 65);
             button3.TabIndex = 2;
-            button3.Text = "web whatsapp";
+            button3.Text = "Whatsapp Web";
             button3.UseVisualStyleBackColor = true;
             button3.Click += button3_Click;
             // 
