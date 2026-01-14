@@ -30,17 +30,18 @@
         {
             panel1 = new Panel();
             webView21 = new Microsoft.Web.WebView2.WinForms.WebView2();
+            progressBar1 = new ProgressBar();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)webView21).BeginInit();
             SuspendLayout();
             // 
             // panel1
             // 
-            panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel1.Controls.Add(webView21);
-            panel1.Location = new Point(12, 12);
+            panel1.Dock = DockStyle.Top;
+            panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1021, 574);
+            panel1.Size = new Size(1045, 515);
             panel1.TabIndex = 0;
             // 
             // webView21
@@ -49,17 +50,27 @@
             webView21.CreationProperties = null;
             webView21.DefaultBackgroundColor = Color.White;
             webView21.Dock = DockStyle.Fill;
+            webView21.Enabled = false;
             webView21.Location = new Point(0, 0);
             webView21.Name = "webView21";
-            webView21.Size = new Size(1021, 574);
+            webView21.Size = new Size(1045, 515);
             webView21.TabIndex = 0;
             webView21.ZoomFactor = 1D;
+            webView21.Click += webView21_Click;
+            // 
+            // progressBar1
+            // 
+            progressBar1.Location = new Point(12, 531);
+            progressBar1.Name = "progressBar1";
+            progressBar1.Size = new Size(1021, 43);
+            progressBar1.TabIndex = 1;
             // 
             // whatsapp
             // 
             AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1045, 598);
+            Controls.Add(progressBar1);
             Controls.Add(panel1);
             Name = "whatsapp";
             Text = "whatsapp";
@@ -73,5 +84,6 @@
 
         private Panel panel1;
         private Microsoft.Web.WebView2.WinForms.WebView2 webView21;
+        private ProgressBar progressBar1;
     }
 }

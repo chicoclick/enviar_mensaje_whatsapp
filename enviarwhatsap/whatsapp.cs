@@ -2,17 +2,17 @@
 using System.Windows.Forms;
 using System.Threading.Tasks;
 using System.Collections.Specialized;
+using Microsoft.Web.WebView2.WinForms;
+using System.IO;
 
 namespace enviarwhatsap
 {
     public partial class whatsapp : Form
     {
-        
-
         private string numero;
         private string mensaje;
         private string rutaArchivo;
-        private int maxAttempts = 15; // Máximo número de intentos para verificar el chat (15 * 2 segundos = 30 segundos máximo)
+        private bool chatProcesado = false;
 
         public whatsapp(string numero, string mensaje, string rutaArchivo)
         {
@@ -20,172 +20,213 @@ namespace enviarwhatsap
             this.numero = numero;
             this.mensaje = mensaje;
             this.rutaArchivo = rutaArchivo;
-        }
 
-        private void whatsapp_Load(object sender, EventArgs e)
-        {
-
-            enviarmensajechat();
-
-        }
-
-        private async void enviarmensajechat()
+            // Asegúrate de que progressBar1 exista en el diseñador
+            // Configúralo en el diseñador: Style = Continuous, Minimum=0, Maximum=100, Value=0
+            if (progressBar1 != null)
             {
-            //string normalizedPath = Path.GetFullPath(@"C:\Users\Manuel Gomez\source\repos\enviarwhatsap\enviarwhatsap\bin\Debug\hola.pdf");
+                progressBar1.Visible = false;
+                progressBar1.Value = 0;
+            }
+
+            // Inicializa WebView2 si no está en el diseñador
+            if (webView21 == null)
+            {
+                webView21 = new WebView2();
+                webView21.Dock = DockStyle.Fill;
+                this.Controls.Add(webView21);
+            }
+        }
+
+        private async void whatsapp_Load(object sender, EventArgs e)
+        {
+            await EnviarMensajeChat();
+        }
+
+        private async Task EnviarMensajeChat()
+        {
             string normalizedPath = Path.GetFullPath(rutaArchivo);
-            //string normalizedPath = Path.GetFullPath(@"C:\Users\Manuel Gomez\Downloads\Vídeo sin título ‐ Hecho con Clipchamp.mp4");
-            //Vídeo sin título ‐ Hecho con Clipchamp.mp4
+
             if (!Path.GetExtension(normalizedPath).ToLower().Equals(".pdf"))
             {
                 MessageBox.Show("El archivo debe ser un PDF.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.Close();
-                //return;
+                return;
             }
-            // Inicializa WebView2
-            await webView21.EnsureCoreWebView2Async(null);
 
-            // Navega a WhatsApp Web
-            //string url = $"https://web.whatsapp.com/send?phone=+529992963226&text={Uri.EscapeDataString("Hola")}";
-            string url = $"https://web.whatsapp.com/send?phone={numero}&text={Uri.EscapeDataString(mensaje)}";
-            webView21.CoreWebView2.Navigate(url);
-            await Task.Delay(5000); // Espera para escanear QR
-                                    // Verificar si el chat está cargado o si sigue en la pantalla de carga
-            bool isChatLoaded = false;
-            //int maxAttempts = 15; // Máximo número de intentos (30 * 2 segundos = 60 segundos máximo)
-            int attempt = 0;
-
-            while (!isChatLoaded && attempt < maxAttempts)
+            try
             {
-                // Verificar si el elemento del chat (#side) está presente
-                string authCheck = await webView21.ExecuteScriptAsync("document.querySelector('div#side') ? 'Chat encontrado' : 'No autenticado'");
-                // Verificar si la pantalla de carga está presente
-                //string loadingCheck = await webView21.ExecuteScriptAsync("document.querySelector('div._aiwn') ? 'Cargando' : 'No cargando'");
-
-                if (authCheck.Contains("Chat encontrado"))
+                if (progressBar1 != null)
                 {
-                    isChatLoaded = true; // El chat está cargado y la pantalla de carga ya no está
+                    progressBar1.Visible = true;
+                    progressBar1.Value = 5;   // Inicio
                 }
-                else
-                {
-                    // Esperar antes de intentar de nuevo
-                    await Task.Delay(2000); // Esperar 2 segundos entre intentos
-                    attempt++;
-                }
-            }
 
-            // Verificar si se agotaron los intentos
-            if (!isChatLoaded)
-            {
-                MessageBox.Show("No se pudo cargar el chat de WhatsApp Web o no se autenticó. Por favor, escanea el código QR.", "Error de autenticación", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.Close();
-               
-            }
-            else 
-            {
-                // Proceder a enviar el archivo
-                await PasteFile(normalizedPath);
-                this.Close();
-            }
+                await webView21.EnsureCoreWebView2Async(null);
 
-            
-            // Paso 1: Verificar autenticación de WhatsApp Web
-            /*string authCheck = await webView21.ExecuteScriptAsync("document.querySelector('div#side') ? 'Chat encontrado' : 'No autenticado'");
-            if (authCheck.Contains("No autenticado"))
-            {
-                //webView21.Visible = true;
-                MessageBox.Show("Por favor, escanea el código QR en WhatsApp Web.", "Error de autenticación", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.Close();
-                //return;
+                webView21.NavigationCompleted -= WebView21_NavigationCompleted;
+                webView21.NavigationCompleted += WebView21_NavigationCompleted;
+
+                string url = $"https://web.whatsapp.com/send?phone={numero}&text={Uri.EscapeDataString(mensaje)}";
+                webView21.CoreWebView2.Navigate(url);
+
+                if (progressBar1 != null) progressBar1.Value = 15;  // Navegación iniciada
             }
-            else
+            catch (Exception ex)
             {
-                //webView21.Visible = false;
-                // Copiar y pegar el archivo
-                await PasteFile(normalizedPath);
+                MessageBox.Show($"Error al inicializar: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ResetProgress();
                 this.Close();
-            }*/
+            }
         }
+
+        private async void WebView21_NavigationCompleted(object sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs e)
+        {
+            webView21.NavigationCompleted -= WebView21_NavigationCompleted;
+
+            if (!e.IsSuccess)
+            {
+                MessageBox.Show($"Navegación fallida: {e.WebErrorStatus}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ResetProgress();
+                this.Close();
+                return;
+            }
+
+            if (progressBar1 != null) progressBar1.Value = 30;  // Página cargada (QR o chat)
+
+            if (chatProcesado) return;
+            chatProcesado = true;
+
+            // Espera el chat (#side)
+            int intentos = 0;
+            const int maxIntentos = 20;
+
+            while (intentos < maxIntentos)
+            {
+                string resultado = await webView21.CoreWebView2.ExecuteScriptAsync(
+                    "document.querySelector('div#side') ? 'ok' : 'esperando'");
+
+                if (resultado?.Contains("ok") == true)
+                {
+                    if (progressBar1 != null) progressBar1.Value = 60;  // Chat detectado
+
+                    await Task.Delay(1200);
+                    await PasteFile(Path.GetFullPath(rutaArchivo));
+                    ResetProgress();
+                    this.Close();
+                    return;
+                }
+
+                if (progressBar1 != null)
+                {
+                    progressBar1.Value = 30 + (intentos * 2);  // Progreso mientras espera chat (hasta ~70)
+                }
+
+                await Task.Delay(2000);
+                intentos++;
+            }
+
+            MessageBox.Show("No se detectó el chat después de 40 segundos.\n¿Escaneaste el QR?",
+                "Timeout", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            ResetProgress();
+            this.Close();
+        }
+
         private async Task PasteFile(string filePath)
         {
             try
             {
-                //area de tamano doc y tiempo recomendado
-                // Obtener el tamaño del archivo en bytes
                 FileInfo fileInfo = new FileInfo(filePath);
-                long fileSizeBytes = fileInfo.Length;
-                double fileSizeMB = fileSizeBytes / (1024.0 * 1024.0); // Convertir a MB
+                double fileSizeMB = fileInfo.Length / (1024.0 * 1024.0);
 
-                // Validar tamaño máximo de WhatsApp
                 if (fileSizeMB > 100)
                 {
-                    MessageBox.Show("El archivo excede el límite de 100 MB de WhatsApp.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    this.Close();
-                    //return;
+                    MessageBox.Show("Archivo > 100 MB (límite recomendado).", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
 
-                // Calcular tiempos de espera dinámicos basados en el tamaño del archivo
-                int pasteDelayMs;
-                int sendDelayMs;
+                int pasteDelay = fileSizeMB < 1 ? 1500 : fileSizeMB < 10 ? 4000 : 7000;
+                int sendDelay = fileSizeMB < 1 ? 2500 : fileSizeMB < 10 ? 5000 : 9000;
 
-                if (fileSizeMB < 1) // Pequeño (< 1 MB)
-                {
-                    pasteDelayMs = 1000; // 1 segundo para pegar
-                    sendDelayMs = 2000;  // 2 segundos para enviar
-                }
-                else if (fileSizeMB < 10) // Mediano (1–10 MB)
-                {
-                    pasteDelayMs = 3000; // 3 segundos para pegar
-                    sendDelayMs = 4000;  // 4 segundos para enviar
-                }
-                else // Grande (> 10 MB)
-                {
-                    pasteDelayMs = 5000; // 5 segundos para pegar
-                    sendDelayMs = 6000;  // 6 segundos para enviar
-                }
-
-                // Paso 2: Dar foco a WebView2
+                if (progressBar1 != null) progressBar1.Value = 75;  // Preparando pegado
+                webView21.Enabled = true;
+                this.Activate();
+                
                 webView21.Focus();
-                //await Task.Delay(500);
-
-                // Paso 3: Copiar el archivo al portapapeles
+                await Task.Delay(600);
+              
                 StringCollection files = new StringCollection { filePath };
                 Clipboard.SetFileDropList(files);
-                await Task.Delay(500);
+               
+                await Task.Delay(700);
+               
+                SendKeys.SendWait("^v");
+              
+                await Task.Delay(pasteDelay);
 
-                this.Activate();
-                SendKeys.SendWait("^v"); // Ctrl+V
-                await Task.Delay(pasteDelayMs); // Esperar a que el archivo se cargue
-           // Paso 5: Hacer clic en el botón de enviar
-                await webView21.CoreWebView2.ExecuteScriptAsync(@"
-                setTimeout(function() {
-                    
-                        var alternativeButton = document.querySelector('span[data-icon=""wds-ic-send-filled""]');
-                        if (alternativeButton) {
-                            alternativeButton.click();
-                            console.log('Botón alternativo (span[data-icon=""wds-ic-send-filled""]) clicado');
-                        } else {
-                            console.log('Botón alternativo no encontrado');
+                if (progressBar1 != null) progressBar1.Value = 85;  // Archivo pegado, esperando botón
+
+                // Clic en botón Enviar (selectores actualizados 2026)
+                string script = @"
+                    function clickSend() {
+                        const selectors = [
+                            '[data-testid=""send""]',
+                            'span[data-icon=""send""]',
+                            'button > span[data-icon=""send""]',
+                            '[data-icon=""send""]',
+                            'div[role=""button""][aria-label*=""Enviar""]',
+                            'div[role=""button""][data-testid=""send""]'
+                        ];
+
+                        for (let sel of selectors) {
+                            let btn = document.querySelector(sel);
+                            if (btn && btn.offsetParent !== null) {
+                                btn.click();
+                                return 'ok';
+                            }
                         }
-                    
-                }, 2000);
-            ");
+                        return 'no';
+                    }
 
-                // Paso 5: Esperar a que el archivo se envíe
-                await Task.Delay(sendDelayMs + 1000); // Añadir un pequeño margen después de enviar
+                    let tries = 0;
+                    const interval = setInterval(() => {
+                        if (clickSend() === 'ok' || tries >= 12) {
+                            clearInterval(interval);
+                        }
+                        tries++;
+                    }, 900);
+                ";
 
-                MessageBox.Show("Archivo enviado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                await webView21.CoreWebView2.ExecuteScriptAsync(script);
+                webView21.Enabled = false;
 
+                if (progressBar1 != null) progressBar1.Value = 92;  // Enviando...
+
+                await Task.Delay(sendDelay + 3000);  // Espera subida + envío
+
+                if (progressBar1 != null) progressBar1.Value = 100;
+
+                MessageBox.Show("Archivo enviado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al subir archivo: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error al enviar: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                ResetProgress();
             }
         }
 
-       
+        private void ResetProgress()
+        {
+            if (progressBar1 != null)
+            {
+                progressBar1.Visible = false;
+                progressBar1.Value = 0;
+            }
+        }
+
+        private void webView21_Click(object sender, EventArgs e) { }
     }
-
 }
-
-
-    
